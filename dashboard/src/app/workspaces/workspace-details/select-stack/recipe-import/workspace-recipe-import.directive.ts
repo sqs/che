@@ -11,30 +11,33 @@
 'use strict';
 
 /**
- * Defines a directive for displaying recipe widget.
+ * Defines a directive for displaying recipe import widget.
  * @author Oleksii Orel
+ * @author Oleksii Kurinnyi
  */
-export class WorkspaceRecipe {
+export class WorkspaceRecipeImport {
+  restrict: string = 'E';
+  templateUrl: string = 'app/workspaces/workspace-details/select-stack/recipe-import/workspace-recipe-import.html';
+  replace: boolean = false;
+
+  controller: string = 'WorkspaceRecipeImportController';
+  controllerAs: string = 'workspaceRecipeImportCtrl';
+
+  bindToController: boolean = true;
+
+  scope: {
+    [paramName: string]: string
+  };
 
   /**
    * Default constructor that is using resource
    * @ngInject for Dependency injection
    */
   constructor() {
-    this.restrict = 'E';
-    this.templateUrl = 'app/workspaces/workspace-details/select-stack/recipe/workspace-recipe.html';
-    this.replace = false;
-
-    this.controller = 'WorkspaceRecipeController';
-    this.controllerAs = 'workspaceRecipeCtrl';
-
-    this.bindToController = true;
-
     // scope values
     this.scope = {
-      recipeUrl:'=cheRecipeUrl',
-      recipeScript:'=cheRecipeScript',
-      recipeFormat:'=cheRecipeFormat'
+      recipeUrl: '=cheRecipeUrl',
+      recipeFormat: '=cheRecipeFormat'
     };
 
   }
