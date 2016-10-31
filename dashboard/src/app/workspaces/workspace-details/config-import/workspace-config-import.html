@@ -1,0 +1,19 @@
+<div layout="column" class="config-import">
+  <ng-form name="workspaceConfigImportForm">
+    <div class="config-editor">
+      <ui-codemirror ui-codemirror="workspaceConfigImportController.editorOptions"
+                     ng-model="workspaceConfigImportController.importWorkspaceJson"
+                     ng-change="workspaceConfigImportController.onChange()"
+                     ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 1000, 'blur': 0 } }"
+      ></ui-codemirror>
+      <che-input che-form="workspaceConfigImportForm"
+                 che-name="configValidation"
+                 type="hidden"
+                 ng-model="workspaceConfigImportController.validationError"
+                 custom-validator="workspaceConfigImportController.configValid()">
+        <div ng-message="customValidator">{{workspaceConfigImportController.validationError}}</div>
+      </che-input>
+    </div>
+  </ng-form>
+</div>
+
