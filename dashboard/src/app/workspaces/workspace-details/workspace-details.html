@@ -44,7 +44,7 @@
                            che-place-holder="Name of the workspace"
                            aria-label="Name of the workspace"
                            ng-model="workspaceDetailsController.newName"
-                           ng-change="workspaceDetailsController.updateName(workspaceNameForm.$valid)"
+                           ng-change="workspaceDetailsController.updateName(workspaceNameForm)"
                            ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 2000, 'blur': 0 } }"
                            required
                            unique-workspace-name="workspaceDetailsController.workspaceName"
@@ -117,8 +117,27 @@
       </md-tab-body>
     </md-tab>
 
+    <!-- Config tab -->
+    <md-tab ng-disabled="workspaceDetailsController.isTabDisabled(workspaceDetailsController.tab.Config)">
+      <md-tab-label>
+        <md-icon md-font-icon="fa-file-text-o" class="fa che-tab-label-icon"></md-icon>
+        <span class="che-tab-label-title">Workspace Config</span>
+      </md-tab-label>
+      <md-tab-body>
+        <ng-form name="workspaceConfigForm">
+          <che-label-container che-label-name="Workspace config">
+            <che-workspace-config-import
+              ng-init="workspaceDetailsController.setForm(workspaceDetailsController.tab.Config, workspaceConfigForm)"
+              workspace-config="workspaceDetailsController.copyWorkspaceDetails.config"
+              workspace-config-readonly="workspaceDetailsController.isCreationFlow === false"
+              workspace-config-on-change="workspaceDetailsController.updateWorkspaceConfigImport(config)"></che-workspace-config-import>
+          </che-label-container>
+        </ng-form>
+      </md-tab-body>
+    </md-tab>
+
     <!-- Runtime Tab -->
-    <md-tab ng-disabled="workspaceDetailsController.isRuntimeTabDisabled()">
+    <md-tab ng-disabled="workspaceDetailsController.isTabDisabled(workspaceDetailsController.tab.Runtime)">
       <md-tab-label>
         <md-icon md-font-icon="fa-wrench" class="fa che-tab-label-icon"></md-icon>
         <span class="che-tab-label-title">Runtime</span>
@@ -133,7 +152,7 @@
             environment-name="workspaceDetailsController.copyWorkspaceDetails.config.defaultEnv"
             workspace-config="workspaceDetailsController.copyWorkspaceDetails.config"
             machines-view-status="workspaceDetailsController.machinesViewStatus"
-            environment-on-change="workspaceDetailsController.updateWorkspaceConfig()"></workspace-environments>
+            environment-on-change="workspaceDetailsController.updateWorkspaceConfigEnvironment()"></workspace-environments>
         </ng-form>
       </md-tab-body>
     </md-tab>
