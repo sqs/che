@@ -19,7 +19,7 @@ public interface ResponseMessageDTO extends ResponseMessage {
     /**
      * The request id.
      */
-    void setId(final String id);
+    void setId(final Integer id);
 
     /**
      * The result of a request. This can be omitted in the case of an error.

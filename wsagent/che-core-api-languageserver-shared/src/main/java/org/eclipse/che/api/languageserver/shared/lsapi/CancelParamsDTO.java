@@ -19,5 +19,5 @@ public interface CancelParamsDTO extends CancelParams {
     /**
      * The request id to cancel.
      */
-    void setId(final String id);
+    void setId(final Integer id);
 }

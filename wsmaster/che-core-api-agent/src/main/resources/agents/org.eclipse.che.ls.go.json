@@ -1,0 +1,7 @@
+{
+  "name": "org.eclipse.che.ls.go",
+  "dependencies": [],
+  "properties": {
+  },
+  "script": "#\n# Copyright (c) 2012-2016 Codenvy, S.A.\n# All rights reserved. This program and the accompanying materials\n# are made available under the terms of the Eclipse Public License v1.0\n# which accompanies this distribution, and is available at\n# http://www.eclipse.org/legal/epl-v10.html\n#\n# Contributors:\n# Codenvy, S.A. - initial API and implementation\n#\n\nunset PACKAGES\nunset SUDO\ncommand -v curl >/dev/null 2>&1 || { PACKAGES=${PACKAGES}\" curl\"; }\ntest \"$(id -u)\" = 0 || SUDO=\"sudo\"\n\nAGENT_BINARIES_URI=https://dl.dropboxusercontent.com/u/71211522/langserver-go\nCHE_DIR=$HOME/che\nLS_DIR=${CHE_DIR}/ls-go\nLS_LAUNCHER=${LS_DIR}/launch.sh\nLS_BIN=langserver-go\n\nmkdir -p ${CHE_DIR}\nmkdir -p ${LS_DIR}\n\n######################\n### Install GoLang LS ###\n######################\ncd ${LS_DIR}\n\ncurl -s ${AGENT_BINARIES_URI} > ${LS_BIN}\n\ntouch ${LS_LAUNCHER}\nchmod +x ${LS_LAUNCHER}\nchmod +x ${LS_BIN}\necho \"${LS_DIR}/${LS_BIN} -mode=stdio -trace=true -logfile=${LS_DIR}/gols.log\" > ${LS_LAUNCHER}"
+}

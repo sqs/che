@@ -19,7 +19,7 @@ public interface RequestMessageDTO extends RequestMessage {
     /**
      * The request id.
      */
-    void setId(final String id);
+    void setId(final Integer id);
 
     /**
      * The method to be invoked.
