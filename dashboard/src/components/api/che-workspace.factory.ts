@@ -41,6 +41,9 @@ export class CheWorkspace {
     // per Id
     this.workspacesById = new Map();
 
+    // per namespace
+    this.workspacesByNamespace = new Map();
+
     //Workspace agents per workspace id:
     this.workspaceAgents = new Map();
 
@@ -128,6 +131,10 @@ export class CheWorkspace {
     return this.workspacesById;
   }
 
+  getWorkspacesByNamespace(namespace) {
+    return this.workspacesByNamespace.get(namespace);
+  }
+
   getWorkspaceByName(namespace, name) {
     return this.lodash.find(this.workspaces, (workspace) => {
       return workspace.namespace === namespace && workspace.config.name === name;
@@ -168,6 +175,7 @@ export class CheWorkspace {
           remoteWorkspaces.push(workspace);
           this.workspaces.push(workspace);
           this.workspacesById.set(workspace.id, workspace);
+          this.workspacesByNamespace.set(workspace.namespace, workspace);
         }
         this.startUpdateWorkspaceStatus(workspace.id);
       });
