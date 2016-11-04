@@ -1,0 +1,40 @@
+<!--
+
+    Copyright (c) 2015 Codenvy, S.A.
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License v1.0
+    which accompanies this distribution, and is available at
+    http://www.eclipse.org/legal/epl-v10.html
+
+    Contributors:
+      Codenvy, S.A. - initial API and implementation
+
+-->
+<md-content flex class="workspace-ssh-content">
+
+  <che-label-container che-label-name="Default key" che-label-description="Default SSH key is generated when workspace is created. It is possible to connect to any machine of the workspace by using this key.">
+
+    <div layout="column" ng-if="workspaceDetailsSshCtrl.sshKeyPair">
+      <che-text-info che-label-name="Private key" che-text="workspaceDetailsSshCtrl.sshKeyPair.privateKey"
+                     che-copy-clipboard="true"
+                     class="workspace-ssh-content-private"></che-text-info>
+
+      <che-text-info che-label-name="Public key" che-text="workspaceDetailsSshCtrl.sshKeyPair.publicKey"
+                     che-copy-clipboard="true"
+                     class=""></che-text-info>
+
+      <che-button-danger che-button-title="Remove default SSH key"
+                         ng-click="workspaceDetailsSshCtrl.removeDefaultKey()"></che-button-danger>
+    </div>
+
+
+    <div layout="column" ng-if="!workspaceDetailsSshCtrl.sshKeyPair">
+      <che-button-primary che-button-title="Generate"
+                          ng-click="workspaceDetailsSshCtrl.generateDefaultKey()"></che-button-primary>
+      <span class="workspace-ssh-content-notice">There is no default SSH key associated to this current workspace. A new key can be generated.</span>
+      <span ng-if="workspaceDetailsSshCtrl.workspace.status === 'RUNNING'">Note: Workspace is currently in RUNNING state. It will require a restart of the workspace in order to be taken into account.</span>
+    </div>
+  </che-label-container>
+
+</md-content>
+
