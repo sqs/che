@@ -16,6 +16,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+import com.google.common.base.Strings;
+
 import org.apache.commons.fileupload.FileItem;
 import org.apache.tika.Tika;
 import org.eclipse.che.WorkspaceIdProvider;
@@ -43,6 +45,7 @@ import org.eclipse.che.api.vfs.search.QueryExpression;
 import org.eclipse.che.api.vfs.search.SearchResult;
 import org.eclipse.che.api.vfs.search.SearchResultEntry;
 import org.eclipse.che.api.vfs.search.Searcher;
+import org.eclipse.che.api.workspace.shared.dto.CreateProjectConfigDto;
 import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
 import org.eclipse.che.api.workspace.shared.dto.SourceStorageDto;
 import org.eclipse.che.commons.env.EnvironmentContext;
@@ -83,6 +86,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.PUT;
@@ -90,6 +94,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.che.api.core.util.LinksHelper.createLink;
 import static org.eclipse.che.api.project.server.DtoConverter.asDto;
 import static org.eclipse.che.api.project.shared.Constants.LINK_REL_CHILDREN;
+import static org.eclipse.che.api.project.shared.Constants.LINK_REL_CREATE_BATCH_PROJECTS;
 import static org.eclipse.che.api.project.shared.Constants.LINK_REL_CREATE_PROJECT;
 import static org.eclipse.che.api.project.shared.Constants.LINK_REL_DELETE;
 import static org.eclipse.che.api.project.shared.Constants.LINK_REL_GET_CONTENT;
@@ -204,6 +209,56 @@ public class ProjectService extends Service {
         //logProjectCreatedEvent(configDto.getName(), configDto.getProjectType());
 
         return injectProjectLinks(configDto);
+    }
+
+    @POST
+    @Path("/batch")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Creates batch of projects",
+                  response = ProjectConfigDto.class)
+    @ApiResponses({@ApiResponse(code = 200, message = "OK"),
+                   @ApiResponse(code = 403, message = "Operation is forbidden"),
+                   @ApiResponse(code = 409, message = "Project with specified name already exist in workspace"),
+                   @ApiResponse(code = 500, message = "Server error")})
+    @GenerateLink(rel = LINK_REL_CREATE_BATCH_PROJECTS)
+    public List<ProjectConfigDto> createBatchProjects(@Description("list of descriptors for projects") List<CreateProjectConfigDto> projectConfigList)
+            throws ConflictException,
+                   ForbiddenException,
+                   ServerException,
+                   NotFoundException, IOException, UnauthorizedException {
+
+        List<RegisteredProject> projects = new ArrayList<>(projectConfigList.size());
+        for (CreateProjectConfigDto projectConfig : projectConfigList) {
+            final String pathToProject = projectConfig.getPath();
+            final String pathToParent = pathToProject.substring(0, pathToProject.lastIndexOf("/"));
+            if (!pathToParent.equals("/")) {
+                VirtualFileEntry parentFileEntry = projectManager.getProjectsRoot().getChild(pathToParent);
+                if (parentFileEntry == null) {
+                    throw new NotFoundException(String.format("The parent folder with path %s does not exist.", pathToParent));
+                }
+            }
+
+            RegisteredProject registeredProject;
+            final SourceStorageDto sourceStorage = projectConfig.getSource();
+            final VirtualFileEntry projectFileEntry = projectManager.getProjectsRoot().getChild(pathToProject);
+
+            if (sourceStorage != null && !isNullOrEmpty(sourceStorage.getLocation())) {
+                registeredProject = projectManager.importProject(projectConfig.getPath(), projectConfig.getSource(), true);
+            } else if (projectFileEntry != null) {
+                registeredProject = projectManager.updateProject(projectConfig);
+            } else {
+                registeredProject = projectManager.createProject(projectConfig, projectConfig.getOptions());
+            }
+
+            projects.add(registeredProject);
+            eventService.publish(new ProjectCreatedEvent(workspace, registeredProject.getPath()));
+        }
+
+        return projects
+                .stream()
+                .map(p -> injectProjectLinks(asDto(p)))
+                .collect(Collectors.toList());
     }
 
     @PUT

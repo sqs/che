@@ -14,6 +14,7 @@ import com.google.common.annotations.Beta;
 
 import org.eclipse.che.api.core.model.project.ProjectConfig;
 import org.eclipse.che.api.core.model.project.SourceStorage;
+import org.eclipse.che.api.workspace.shared.dto.CreateProjectConfigDto;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,14 +30,15 @@ import static com.google.common.collect.Maps.newHashMap;
 @Beta
 public class MutableProjectConfig implements ProjectConfig {
 
-    private String                    name;
-    private String                    path;
-    private String                    description;
-    private String                    type;
-    private List<String>              mixins;
-    private Map<String, List<String>> attributes;
-    private MutableSourceStorage      sourceStorage;
-    private Map<String, String>       options;
+    private String                       name;
+    private String                       path;
+    private String                       description;
+    private String                       type;
+    private List<String>                 mixins;
+    private Map<String, List<String>>    attributes;
+    private MutableSourceStorage         sourceStorage;
+    private Map<String, String>          options;
+    private List<CreateProjectConfigDto> projects;
 
     public MutableProjectConfig(ProjectConfig source) {
         name = source.getName();
@@ -135,6 +137,17 @@ public class MutableProjectConfig implements ProjectConfig {
 
     public void setOptions(Map<String, String> options) {
         this.options = options;
+    }
+
+    public List<CreateProjectConfigDto> getProjects() {
+        if (projects == null) {
+            return new ArrayList<>();
+        }
+        return projects;
+    }
+
+    public void setProjects(List<CreateProjectConfigDto> projects) {
+        this.projects = projects;
     }
 
     public class MutableSourceStorage implements SourceStorage {

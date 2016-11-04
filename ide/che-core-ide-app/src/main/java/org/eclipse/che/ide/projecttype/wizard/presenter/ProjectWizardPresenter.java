@@ -17,6 +17,7 @@ import com.google.inject.Singleton;
 import org.eclipse.che.api.project.shared.dto.AttributeDto;
 import org.eclipse.che.api.project.shared.dto.ProjectTypeDto;
 import org.eclipse.che.api.project.templates.shared.dto.ProjectTemplateDescriptor;
+import org.eclipse.che.api.workspace.shared.dto.CreateProjectConfigDto;
 import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.ide.api.dialogs.DialogFactory;
 import org.eclipse.che.ide.api.project.MutableProjectConfig;
@@ -31,6 +32,7 @@ import org.eclipse.che.ide.projecttype.wizard.categoriespage.CategoriesPagePrese
 import org.eclipse.che.ide.resource.Path;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,7 @@ public class ProjectWizardPresenter implements Wizard.UpdateDelegate,
                                                CategoriesPagePresenter.ProjectTypeSelectionListener,
                                                CategoriesPagePresenter.ProjectTemplateSelectionListener {
 
+    private final Provider<MutableProjectConfig>     projectConfigProvider;
     private final ProjectWizardView                  view;
     private final ProjectWizardFactory               projectWizardFactory;
     private final ProjectWizardRegistry              wizardRegistry;
@@ -62,7 +65,6 @@ public class ProjectWizardPresenter implements Wizard.UpdateDelegate,
     private final Map<ProjectTypeDto, ProjectWizard> wizardsCache;
     private       CategoriesPagePresenter            categoriesPage;
     private       ProjectWizard                      wizard;
-    private       ProjectWizard                      importWizard;
     private       WizardPage                         currentPage;
 
     private ProjectWizardMode wizardMode;
@@ -72,11 +74,13 @@ public class ProjectWizardPresenter implements Wizard.UpdateDelegate,
                                   ProjectWizardFactory projectWizardFactory,
                                   ProjectWizardRegistry wizardRegistry,
                                   Provider<CategoriesPagePresenter> categoriesPageProvider,
+                                  Provider<MutableProjectConfig> projectConfigProvider,
                                   DialogFactory dialogFactory) {
         this.view = view;
         this.projectWizardFactory = projectWizardFactory;
         this.wizardRegistry = wizardRegistry;
         this.categoriesPageProvider = categoriesPageProvider;
+        this.projectConfigProvider = projectConfigProvider;
         this.dialogFactory = dialogFactory;
         wizardsCache = new HashMap<>();
         view.setDelegate(this);
@@ -154,7 +158,6 @@ public class ProjectWizardPresenter implements Wizard.UpdateDelegate,
         wizardMode = null;
         categoriesPage.setProjectTypeSelectionListener(this);
         categoriesPage.setProjectTemplateSelectionListener(this);
-        importWizard = null;
     }
 
     private void showDialog(@Nullable MutableProjectConfig dataObject) {
@@ -168,7 +171,17 @@ public class ProjectWizardPresenter implements Wizard.UpdateDelegate,
 
     @Override
     public void onProjectTypeSelected(ProjectTypeDto projectType) {
+        // some values should be cleared when user switch between categories
         final MutableProjectConfig prevData = wizard.getDataObject();
+
+        MutableProjectConfig.MutableSourceStorage sourceStorage = prevData.getSource();
+        if (sourceStorage != null) {
+            sourceStorage.setLocation("");
+            sourceStorage.setType("");
+            sourceStorage.getParameters().clear();
+        }
+        prevData.getProjects().clear();
+
         wizard = getWizardForProjectType(projectType, prevData);
         wizard.navigateToFirst();
         final MutableProjectConfig newProject = wizard.getDataObject();
@@ -199,12 +212,14 @@ public class ProjectWizardPresenter implements Wizard.UpdateDelegate,
     @Override
     public void onProjectTemplateSelected(ProjectTemplateDescriptor projectTemplate) {
         final MutableProjectConfig dataObject = wizard.getDataObject();
-        wizard = importWizard == null ? importWizard = createDefaultWizard(dataObject, IMPORT) : importWizard;
+        wizard = createDefaultWizard(dataObject, IMPORT);
         wizard.navigateToFirst();
 
         // set dataObject's values from projectTemplate
+        dataObject.setPath(projectTemplate.getPath());
         dataObject.setType(projectTemplate.getProjectType());
         dataObject.setSource(projectTemplate.getSource());
+        dataObject.setProjects(projectTemplate.getProjects());
     }
 
     /** Creates or returns project wizard for the specified projectType with the given dataObject. */
